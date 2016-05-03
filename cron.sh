@@ -1,0 +1,1 @@
+/usr/bin/php /home/bae/app/cron.php >> /home/bae/log/cron.log
