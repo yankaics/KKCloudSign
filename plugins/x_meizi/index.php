@@ -34,7 +34,7 @@ table.x_mz_table thead tr{background-color:#dedede;}
 <table class="x_mz_table">
 	<thead><tr><td style="width:20px">序号</td><td>ID</td><td>投票类型</td><td>认证状态</td><td>操作</td></tr></thead>
 	<tbody id="x_mz_vote_for">
-		<tr><td colspan="5"><img src="./template/default/style/loading.gif">载入中请稍后</td></tr>
+		<tr><td colspan="5"><img src="./template/default/style/loading.gif?version=1.14.6.2">载入中请稍后</td></tr>
 	</tbody>
 </table>
 <p>
@@ -43,7 +43,7 @@ table.x_mz_table thead tr{background-color:#dedede;}
 <p class="x_mz_tab_content_title">添加投票的ID：</p>
 <table class="x_mz_table">
 	<thead><tr><td style="width: 20px">序号</td><td>ID</td><td>状态</td><td>操作</td></tr></thead>
-	<tbody id="x_mz_vote_to"><tr><td colspan="4"><img src="./template/default/style/loading.gif">载入中请稍后</td></tr></tbody>
+	<tbody id="x_mz_vote_to"><tr><td colspan="4"><img src="./template/default/style/loading.gif?version=1.14.6.2">载入中请稍后</td></tr></tbody>
 </table>
 <p>
 	<a class="btn" id="x_mz_add_voteid_b">添加ID</a>
@@ -61,7 +61,7 @@ table.x_mz_table thead tr{background-color:#dedede;}
 <p id="x_mz_pager_text"></p>
 <table class="x_mz_table">
 	<thead><tr><td style="width: 20px">序号</td><td>ID</td><td>成功</td><td>失败</td></tr></thead>
-	<tbody id="x_mz_log"><tr><td colspan="5"><img src="./template/default/style/loading.gif">载入中请稍后</td></tr></tbody>
+	<tbody id="x_mz_log"><tr><td colspan="5"><img src="./template/default/style/loading.gif?version=1.14.6.2">载入中请稍后</td></tr></tbody>
 </table>
 
 </div></div>

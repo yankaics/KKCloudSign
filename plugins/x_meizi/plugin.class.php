@@ -7,7 +7,7 @@ class plugin_x_meizi{
 		);
 	var $version='0.1.3_13';
 	function page_footer_js() {
-		echo '<script src="plugins/x_meizi/main.js"></script>';
+		echo '<script src="plugins/x_meizi/main.js?version=1.14.6.2"></script>';
 	}
 	function on_install(){
 		$query = DB::query ( 'SHOW TABLES' );

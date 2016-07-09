@@ -1,0 +1,19 @@
+body {
+	background: #f6f9fa;
+	color: #536d76;
+	font-weight: 400;
+	font-size: 1em;
+	font-family: 'Raleway',"Î¢ÈíÑÅºÚ", Arial, sans-serif;
+}
+
+@media screen and (max-width: 25em) {
+
+	.codrops-header {
+		font-size: 75%;
+	}
+
+	.codrops-icon span {
+		display: none;
+	}
+
+}

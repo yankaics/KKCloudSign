@@ -4,17 +4,17 @@ class plugin_xxx_post extends Plugin{
 	var $description = '可以模仿客户端进行回帖（三倍经验yoooooooooooooo）';
 	var $modules = array (
 		array ('id' => 'index',	'type' => 'page','title' => '客户端回帖','file' => 'index.php'),
-		array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_daily', 'order' => '100')),
-		array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_first', 'order' => '101')),
-		array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_se', 'order' => '102')),
-		array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_sxbk', 'order' => '103')),
+		array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_daily', 'order' => '101')),
+		array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_first', 'order' => '103')),
+		array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_se', 'order' => '105')),
+		array('type' => 'cron', 'cron' => array('id' => 'xxx_post/c_sxbk', 'order' => '109')),
 	);
-	var $version='0.3.5';
+	var $version='0.3.1';
 	function checkCompatibility(){
 		if(version_compare(VERSION, '1.14.4.24', '<')) showmessage('签到助手版本过低，请升级');
 	}
 	function page_footer_js() {
-		echo '<script src="./plugins/xxx_post/main.js?version=1.14.6.2"></script>';
+		echo '<script src="plugins/xxx_post/main.js?version=1.14.6.2"></script>';
 	}
 	function install() {
 		$query = DB::query ( 'SHOW TABLES' );
@@ -26,7 +26,7 @@ class plugin_xxx_post extends Plugin{
 				`sid` int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
 				`uid` int(10) unsigned NOT NULL,
 				`fid` int(10) unsigned NOT NULL,
-				`tid` bigint(12) unsigned NOT NULL,
+				`tid` int(12) unsigned NOT NULL,
 				`name` varchar(127) NOT NULL,
 				`unicode_name` varchar(512) NOT NULL,
 				`post_name` varchar(127) NOT NULL
@@ -77,18 +77,11 @@ class plugin_xxx_post extends Plugin{
 					UPDATE cron SET id='xxx_post/c_first' WHERE id='xxx_post';
 					UPDATE cron SET id='xxx_post/c_se' WHERE id='xxx_post_se';
 					UPDATE cron SET id='xxx_post/c_sxbk' WHERE id='xxx_post_sxbk';
-					alter table `xxx_post_posts` modify column `tid` bigint(12);
 					");
 				$this->saveSetting ( 'sxbk', '0' );
 				$this->saveSetting ( 'se', '21' );
 				$this->saveSetting ( 'first_end','15');
 				return '0.3.1';
-			case '0.3.1':
-			case '0.3.2':
-			case '0.3.3':
-			case '0.3.4':
-				runquery("alter table `xxx_post_posts` modify column `tid` bigint(12);");
-				return '0.3.5';
 			default:
 				throw new Exception("Unknown plugin version: {$from_version}");
 		}
@@ -183,10 +176,8 @@ EOF;
 				$delay = intval($_POST ['x_p_delay']);
 				$max_runtime=$this->getSetting('max_runtime', 6);
 				$runtimes = min($max_runtime, $runtimes);
-				if ($delay < 0)	$delay = 0;
+				if ($delay < 0)	$delay = 1;
 				else if ($delay > 15)  $delay = 15;
-				if ($runtimes < 1)	$delay = 1;
-				else if ($runtimes > 6)  $delay = 6;
 				DB::query ( "replace into xxx_post_setting (uid,client_type,frequency,delay,runtimes) values($uid,$client_type,$frequency,$delay,$runtimes)" );
 				$data ['msg'] = "设置成功";
 				break;
@@ -217,7 +208,7 @@ EOF;
 				break;
 			case 'add-tieba' :
 				$tieba = $_POST ['xxx_post_add_tieba'];
-				$ch = curl_init ('http://tieba.baidu.com/f?kw='.urlencode(iconv("utf-8", "utf-8", $tieba)).'&fr=index');
+				$ch = curl_init ('http://tieba.baidu.com/f?kw='.urlencode($tieba).'&fr=index');
 				curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
 				$contents = curl_exec ( $ch );
 				curl_close ( $ch );
@@ -229,11 +220,9 @@ EOF;
 					$data ['msgx'] = 0;
 					break;
 				}
-				preg_match ( '/"forum_name"\s?:\s?(?<fname>"\S+?")/', $contents, $fnames );
-				//$fname = iconv("utf-8", "utf-8", str_replace('"','',$fnames['fname']));
-				$fname = str_replace('"','',$fnames['fname']);
-				$fname = unicode2utf8($fname);
-				$unicode_name = urlencode($fname);
+				preg_match ( '/fname="(.+?)"/', $contents, $fnames );
+				$unicode_name = urlencode($fnames [1]);
+				$fname = $fnames [1];
 				DB::insert ( 'xxx_post_posts', array (
 					'uid' => $uid,
 					'fid' => $fid,
@@ -246,25 +235,29 @@ EOF;
 				break;
 			case 'get-tid' :
 				$tieurl = $_POST ['xxx_post_tid'];
-				preg_match ( '/tieba\.baidu\.com\/p\/(?<tid>\d+)/', $tieurl, $tids );
+				preg_match ( '/tieba\.baidu\.com\/p\/(?<tid>\d+)/', $tieurl, $tids);
 				$tid=$tids ['tid'];
 				$ch = curl_init ('http://tieba.baidu.com/p/'.$tid);
 				curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, 1 );
 				$contents = curl_exec ( $ch );
 				curl_close ( $ch );
 				$fid = 0;
-				preg_match ( '/"forum_id"\s?:\s?(?<fid>\d+)/', $contents, $fids );
-				$fid =$fids ['fid'];
+
+                preg_match ( '/fname="(.+?)"/', $contents, $fnames );
+				$unicode_name = urlencode($fnames [1]);
+				$fname=$fnames [1];
+				preg_match ( '|<title>(.*?)</title>|s', $contents, $post_names );
+				$post_name =$post_names[1];
+
+
+				$info = file_get_contents('http://tieba.baidu.com/i/data/get_fid_by_fname?fname='.$fname);
+				preg_match ( '/fid":(.*?)},/', $info, $fids );
+				$fid=$fids[1];
 				if ($fid == 0) {
 					$data ['msg'] = "添加失败，请检查帖子地址并重试";
 					$data ['msgx'] = 0;
 					break;
 				}
-                preg_match ( '/fname=\"(.+?)\"/', $contents, $fnames );
-				$unicode_name = urlencode($fnames [1]);
-				$fname = iconv("utf-8", "utf-8", $fnames [1]);
-                preg_match ( '/title:\s?"(.*?)\"/', $contents, $post_names );
-				$post_name = iconv("utf-8", "utf-8", $post_names [1]);
 				DB::insert ( 'xxx_post_posts', array (
 						'uid' => $uid,
 						'fid' => $fid,
@@ -309,14 +302,4 @@ EOF;
 		}
 		echo json_encode ( $data );
 	}
-}
-
-function unicode2utf8($str){
-        if(!$str) return $str;
-        $decode = json_decode($str);
-        if($decode) return $decode;
-        $str = '["' . $str . '"]';
-        $decode = json_decode($str);
-        if(count($decode) == 1){return $decode[0];}
-        return $str;
 }

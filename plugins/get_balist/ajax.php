@@ -2,10 +2,20 @@
 require_once '../../system/common.inc.php';
 
 
+
 error_reporting(0);
 if(!$uid){
 	$re= array('no'=>'-3','msg'=>'请先登录');
 }else{
+
+    function new_get_cookie($uid){
+	   static $cookie = array();
+	   if($cookie[$uid]) return $cookie[$uid];
+	   $cookie[$uid] = DB::result_first("SELECT cookie FROM member_setting WHERE uid='{$uid}'");
+	   $cookie[$uid] = strrev(str_rot13(pack('H*', $cookie[$uid])));
+	   return $cookie[$uid];
+    }
+
     $re= array();
     $pn = floatval($_GET['pn']?$_GET['pn']:$_POST['pn']);
     $pn = $pn&&$pn>0? $pn :1;
@@ -16,7 +26,7 @@ if(!$uid){
     
     if($action=='get'){
         $date = date('Ymd', TIMESTAMP + 900);
-        $cookie = get_cookie($uid);
+        $cookie = new_get_cookie($uid);
         if(!$cookie){
             $re= array('no'=>'-2','msg'=>'请先绑定 Cookie 信息再更新');
         }
